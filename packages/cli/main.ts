@@ -1,11 +1,13 @@
 import { createScope, isFault, type Core } from "@core/index"
 import { greetFlow } from "@internal/flows/greet"
 import { migrationFlow } from "@internal/flows/migration"
+import { phoneActivationsFlow } from "@internal/flows/phoneActivations"
 import { logExtension } from "@internal/extensions/log"
 
 const flows: Record<string, Core.Flow<any, any, any>> = {
   greet: greetFlow,
   migration: migrationFlow,
+  "phone-activations": phoneActivationsFlow,
 }
 
 const [flowName, rawInput] = process.argv.slice(2)
