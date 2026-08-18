@@ -1,3 +1,6 @@
+import { flow, typed } from "@core/index"
+import { csvFile } from "@internal/resources/csvFile"
+
 export interface PhoneRow {
   phone: string
   activate: string
@@ -43,3 +46,31 @@ export function resolvePhoneActivations(rows: PhoneRow[]): PhoneActivation[] {
 
   return results
 }
+
+export const phoneActivationsFlow = flow({
+  name: "phone-activations",
+  parse: typed<{ inputPath: string; outputPath?: string }>(),
+  deps: { csvFile },
+  factory: async (ctx, { csvFile }) => {
+    const { inputPath, outputPath = "output.csv" } = ctx.input
+
+    const rawRows = await csvFile.read(inputPath)
+    const dataRows = rawRows.slice(1) // first line is always a header
+
+    const rows: PhoneRow[] = dataRows.map((record) => {
+      if (record.length < 3) {
+        throw new Error(`Wrong format at line ${JSON.stringify(record)}`)
+      }
+      return { phone: record[0]!, activate: record[1]!, deactivate: record[2]! }
+    })
+
+    const activations = resolvePhoneActivations(rows)
+
+    await csvFile.write(outputPath, [
+      ["PHONE_NUMBER", "REAL_ACTIVATION_DATE"],
+      ...activations.map((a) => [a.phone, a.realActivationDate]),
+    ])
+
+    return { count: activations.length, outputPath }
+  },
+})
