@@ -9,11 +9,15 @@ export function logExtension(): Core.Extension {
       const isOutermost = !logged
       logged = true
 
+      const start = Date.now()
       const output = await next()
 
       if (isOutermost) {
         const name = ctx.name ?? "anonymous"
-        console.log(`[cli] flow=${name} input=${JSON.stringify(ctx.input)} output=${JSON.stringify(output)}`)
+        const durationMs = Date.now() - start
+        console.log(
+          `[cli] flow=${name} input=${JSON.stringify(ctx.input)} output=${JSON.stringify(output)} durationMs=${durationMs}`
+        )
       }
 
       return output
